@@ -32,7 +32,7 @@ export default function AppDesktop() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#080810",
+        background: "#050508", // Lebih gelap & dalam
         color: "#e8e8f0",
         fontFamily: "'Inter', sans-serif",
         display: "flex",
@@ -40,201 +40,183 @@ export default function AppDesktop() {
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #080810; }
-        input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
-        textarea:focus, input:focus { border-color: #3dffa0 !important; box-shadow: 0 0 0 3px rgba(61,255,160,0.1) !important; }
-        button:hover { opacity: 0.85; transform: translateY(-1px); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #2a2a2a; }
+        
+        body { 
+          background: #050508; 
+          overflow-x: hidden;
+        }
+
+        /* Scanline Effect untuk kesan retro-futuristik */
+        body::before {
+          content: " ";
+          position: fixed;
+          top: 0; left: 0; bottom: 0; right: 0;
+          background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                      linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+          z-index: 9999;
+          background-size: 100% 4px, 3px 100%;
+          pointer-events: none;
+        }
+
+        input:focus, textarea:focus {
+          border-color: #3dffa0 !important;
+          box-shadow: 0 0 15px rgba(61,255,160,0.2) !important;
+        }
+
+        button { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050508; }
+        ::-webkit-scrollbar-thumb { background: #1a1a25; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3dffa0; }
       `}</style>
 
+      {/* HEADER: INDUSTRIAL STYLE */}
       <header
         style={{
-          textAlign: "center",
-          padding: "2rem 3rem 1.5rem",
-          borderBottom: "1px solid #1a1a1a",
-          background:
-            "linear-gradient(180deg, rgba(61,255,160,0.04) 0%, transparent 100%)",
+          padding: "1.5rem 4rem",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          background: "rgba(10, 10, 15, 0.8)",
+          backdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 1000
         }}
       >
-        <div
-          style={{
-            fontSize: "2rem",
-            fontWeight: 800,
-            color: "#3dffa0",
-            letterSpacing: "0.08em",
-            textShadow: "0 0 40px rgba(61,255,160,0.35)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-          }}
-        >
-          <HexagonOutlinedIcon sx={{ fontSize: "2rem" }} /> CIPHERLAB
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ 
+            background: "rgba(61,255,160,0.1)", 
+            padding: "8px", 
+            borderRadius: "8px",
+            border: "1px solid rgba(61,255,160,0.2)"
+          }}>
+            <HexagonOutlinedIcon sx={{ fontSize: "2rem", color: "#3dffa0", display: "block" }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: "0.2em", color: "#fff" }}>
+              CIPHER<span style={{ color: "#3dffa0" }}>LAB</span>
+            </h1>
+            <p style={{ fontSize: "0.6rem", color: "#555", fontFamily: "'JetBrains Mono'", letterSpacing: "0.1em" }}>
+              V1.0 Your Ultimate Cryptography Toolkit
+            </p>
+          </div>
         </div>
-        <div
-          style={{
-            marginTop: "1rem",
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: "0.6rem",
-          }}
-        >
+
+        <div style={{ display: "flex", gap: "1.5rem" }}>
           {[
-            {
-              text: "Kriptografi Klasik",
-              bg: "rgba(61,255,160,0.08)",
-              border: "rgba(61,255,160,0.25)",
-              color: "#3dffa0",
-            },
-            {
-              text: "Semester Genap 2025/2026",
-              bg: "rgba(120,180,255,0.08)",
-              border: "rgba(120,180,255,0.25)",
-              color: "#78b4ff",
-            },
-            {
-              text: "Bimo Kusumo Putro W",
-              bg: "rgba(255,180,80,0.08)",
-              border: "rgba(255,180,80,0.25)",
-              color: "#ffb450",
-            },
-            {
-              text: "21120123120029",
-              bg: "rgba(255,120,180,0.08)",
-              border: "rgba(255,120,180,0.25)",
-              color: "#ff78b4",
-            },
+            { label: "MODULE", val: "KRIPTOGRAFI KLASIK", color: "#3dffa0" },
+            { label: "OP_NAME", val: "BIMO KUSUMO PUTRO W", color: "#ffb450" },
+            { label: "ID_CODE", val: "21120123120029", color: "#78b4ff" }
           ].map((item, i) => (
-            <div
-              key={i}
-              style={{
-                padding: "0.55rem 1.2rem",
-                borderRadius: "10px",
-                background: item.bg,
-                backdropFilter: "blur(10px)",
-                border: `1px solid ${item.border}`,
-                fontSize: "0.72rem",
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                fontFamily: "'JetBrains Mono', monospace",
-                color: item.color,
-              }}
-            >
-              {item.text}
+            <div key={i} style={{ textAlign: "right", borderRight: i !== 2 ? "1px solid #222" : "none", paddingRight: i !== 2 ? "1.5rem" : 0 }}>
+              <div style={{ fontSize: "0.55rem", color: "#444", fontWeight: 800 }}>{item.label}</div>
+              <div style={{ fontSize: "0.75rem", color: item.color, fontWeight: 600, fontFamily: "'JetBrains Mono'" }}>{item.val}</div>
             </div>
           ))}
         </div>
       </header>
 
-      <main
-        style={{
-          maxWidth: "100%",
-          margin: "0 auto",
-          padding: "2rem 3rem 5rem",
-          flexGrow: 1,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: "0.3rem",
-            background: "#0f0f18",
-            border: "1px solid #1a1a1a",
-            borderRadius: "12px",
-            padding: "0.3rem",
-            marginBottom: "2rem",
-            overflowX: "auto",
-          }}
-        >
-          {CIPHERS.map((name, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              style={{
-                flex: 1,
-                minWidth: 100,
-                padding: "0.6rem 0.8rem",
-                borderRadius: "8px",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 700,
-                fontSize: "0.88rem",
-                transition: "all 0.2s",
-                background: active === i ? "#3dffa0" : "transparent",
-                color: active === i ? "#000" : "#555",
-                boxShadow:
-                  active === i ? "0 0 20px rgba(61,255,160,0.25)" : "none",
-              }}
-            >
-              {name}
-            </button>
-          ))}
+      <main style={{ maxWidth: "1200px", margin: "0 auto", width: "100%", padding: "3rem 2rem" }}>
+        
+        {/* TAB NAVIGATION: NEON COMMAND STYLE */}
+        <div style={{ 
+          display: "flex", 
+          background: "#0f0f18", 
+          padding: "4px", 
+          borderRadius: "12px", 
+          border: "1px solid #1a1a25",
+          marginBottom: "2.5rem",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+        }}>
+          {CIPHERS.map((name, i) => {
+            const isActive = active === i;
+            return (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  flex: 1,
+                  padding: "1rem",
+                  border: "none",
+                  borderRadius: "8px",
+                  background: isActive ? "rgba(61,255,160,0.1)" : "transparent",
+                  color: isActive ? "#3dffa0" : "#555",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                  fontSize: "0.85rem",
+                  letterSpacing: "0.1em",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                {isActive && (
+                  <div style={{ 
+                    position: "absolute", bottom: 0, left: "20%", right: "20%", height: "2px", 
+                    background: "#3dffa0", boxShadow: "0 0 10px #3dffa0" 
+                  }} />
+                )}
+                {name.toUpperCase()}
+              </button>
+            );
+          })}
         </div>
 
-        <div
-          style={{
-            background: "#0f0f18",
-            border: "1px solid #1a1a1a",
-            borderRadius: "14px",
-            padding: "2rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: 800,
-                background: "linear-gradient(135deg, #fff 0%, #3dffa0 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              {CIPHERS[active]} Cipher
-            </h2>
-            <span
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: "0.8rem",
-                padding: "0.28rem 0.7rem",
-                borderRadius: 999,
-                border: "1px solid #3dffa0",
-                color: "#3dffa0",
-                background: "rgba(61,255,160,0.05)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {BADGE[active]}
-            </span>
+        {/* MAIN PANEL BOX */}
+        <div style={{ 
+          background: "#0f0f18", 
+          border: "1px solid #1a1a25", 
+          borderRadius: "16px",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          {/* Header Internal Panel */}
+          <div style={{ 
+            padding: "1.5rem 2.5rem", 
+            borderBottom: "1px solid #1a1a25", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "space-between",
+            background: "linear-gradient(90deg, rgba(61,255,160,0.02) 0%, transparent 100%)"
+          }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "1rem" }}>
+              <h2 style={{ fontSize: "1.8rem", fontWeight: 800, color: "#fff" }}>{CIPHERS[active]}</h2>
+              <span style={{ 
+                fontFamily: "'JetBrains Mono'", fontSize: "0.75rem", color: "#3dffa0", opacity: 0.7 
+              }}>{BADGE[active]}</span>
+            </div>
+            <div style={{ fontSize: "0.6rem", color: "#333", letterSpacing: "0.2em" }}>
+              STATUS: <span style={{ color: "#3dffa0" }}>ONLINE</span>
+            </div>
           </div>
-          <Panel />
+
+          {/* Content Area */}
+          <div style={{ padding: "2.5rem" }}>
+            <Panel />
+          </div>
         </div>
       </main>
 
-      <footer
-        style={{
-          textAlign: "center",
-          padding: "1.5rem",
-          color: "#888",
-          fontSize: "0.82rem",
-          borderTop: "1px solid #111",
-          fontFamily: "'Inter', sans-serif",
-          letterSpacing: "0.04em",
-        }}
-      >
-        CipherLab · React · Vigenère · Affine · Playfair · Hill · Enigma
+      <footer style={{ 
+        marginTop: "auto", 
+        padding: "2rem", 
+        textAlign: "center", 
+        borderTop: "1px solid #111",
+        background: "#050508"
+      }}>
+        <div style={{ 
+          fontSize: "0.65rem", 
+          color: "#333", 
+          fontFamily: "'JetBrains Mono'", 
+          letterSpacing: "0.3em" 
+        }}>
+          SYSTEM_DECODING_ACTIVE // SEMESTER_GENAP_2025
+        </div>
       </footer>
     </div>
   );

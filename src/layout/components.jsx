@@ -5,27 +5,29 @@ import LockOpenIcon from "@mui/icons-material/LockOpen";
 import CloseIcon from "@mui/icons-material/Close";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
-// Context untuk mobile mode — panels tidak perlu tahu, BtnRow yang handle
+// Context untuk mobile mode
 export const MobileContext = createContext(false);
 
+// Overhaul Input Style: Industrial Cyber
 export const inputStyle = {
   width: "100%",
-  background: "#111",
-  border: "1px solid #2a2a2a",
-  borderRadius: "8px",
-  color: "#e8e8f0",
+  background: "#08080c", // Lebih gelap untuk kontras neon
+  border: "1px solid #1a1a25",
+  borderRadius: "6px",
+  color: "#3dffa0", // Teks default hijau neon lembut
   fontFamily: "'JetBrains Mono', monospace",
   fontSize: "0.9rem",
-  padding: "0.7rem 1rem",
+  padding: "0.8rem 1rem",
   outline: "none",
-  resize: "vertical",
-  transition: "border-color 0.2s",
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  boxShadow: "inset 0 2px 4px rgba(0,0,0,0.3)",
 };
 
 export const taStyle = {
   ...inputStyle,
   minHeight: "160px",
   resize: "vertical",
+  lineHeight: "1.6",
 };
 
 export function OutputBox({ result, error, label }) {
@@ -33,42 +35,59 @@ export function OutputBox({ result, error, label }) {
   return (
     <div
       style={{
-        marginTop: "1rem",
-        padding: "1rem 1.25rem",
-        borderRadius: "10px",
-        background: error ? "rgba(255,80,80,0.08)" : "rgba(80,255,180,0.06)",
-        border: `1px solid ${error ? "#ff5050" : "#3dffa0"}`,
+        marginTop: "1.5rem",
+        padding: "1.25rem",
+        borderRadius: "8px",
+        background: error
+          ? "rgba(255,80,80,0.04)"
+          : "linear-gradient(135deg, rgba(61,255,160,0.05) 0%, rgba(61,255,160,0.01) 100%)",
+        border: `1px solid ${error ? "rgba(255,80,80,0.3)" : "rgba(61,255,160,0.3)"}`,
+        borderLeft: `4px solid ${error ? "#ff5050" : "#3dffa0"}`,
         fontFamily: "'JetBrains Mono', monospace",
-        transition: "all 0.3s",
+        boxShadow: error ? "none" : "0 10px 30px rgba(0,0,0,0.2)",
       }}
     >
       <div
         style={{
-          fontSize: "0.8rem",
-          letterSpacing: "0.15em",
+          fontSize: "0.7rem",
+          letterSpacing: "0.2em",
           textTransform: "uppercase",
           color: error ? "#ff8080" : "#3dffa0",
-          marginBottom: "0.4rem",
+          marginBottom: "0.6rem",
+          fontWeight: 800,
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
         }}
       >
         {error ? (
           <>
-            <WarningAmberIcon
-              sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }}
-            />{" "}
-            Error
+            <WarningAmberIcon sx={{ fontSize: "1rem" }} />
+            SYSTEM_ERROR
           </>
         ) : (
-          label
+          <>
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                background: "#3dffa0",
+                borderRadius: "50%",
+                boxShadow: "0 0 8px #3dffa0",
+              }}
+            />
+            {label || "OUTPUT_RESULT"}
+          </>
         )}
       </div>
       <div
         style={{
-          fontSize: "1rem",
+          fontSize: "1.1rem",
           fontWeight: 700,
-          color: error ? "#ff8080" : "#3dffa0",
+          color: error ? "#ff8080" : "#fff", // Hasil putih agar lebih terbaca
           wordBreak: "break-all",
-          lineHeight: 1.7,
+          lineHeight: 1.6,
+          textShadow: error ? "none" : "0 0 20px rgba(61,255,160,0.2)",
         }}
       >
         {error || result}
@@ -81,73 +100,76 @@ export function FieldLabel({ children }) {
   return (
     <div
       style={{
-        fontSize: "0.82rem",
-        fontWeight: 700,
-        letterSpacing: "0.13em",
+        fontSize: "0.7rem",
+        fontWeight: 800,
+        letterSpacing: "0.2em",
         textTransform: "uppercase",
-        color: "#aaa",
-        marginBottom: "0.45rem",
+        color: "#555", // Warna label lebih redup agar input lebih menonjol
+        marginBottom: "0.6rem",
+        fontFamily: "'Inter', sans-serif",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
       }}
     >
-      {children}
+      <span style={{ color: "#3dffa0" }}>//</span> {children}
     </div>
   );
 }
-
-// components.jsx
 
 export function BtnRow({ onEncrypt, onDecrypt, onClear, extra, hasText }) {
   const isMobile = useContext(MobileContext);
 
   const btnBase = {
-    flex: isMobile ? "1 1 140px" : "1", // Di mobile, minimal 140px sebelum wrap
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "0.5rem",
-    padding: "0.75rem 1rem",
+    padding: "0.8rem 1rem",
     borderRadius: "8px",
     fontSize: "0.85rem",
-    fontWeight: "600",
+    fontWeight: "800",
+    textTransform: "uppercase",
     cursor: "pointer",
     transition: "all 0.2s",
     border: "none",
+    fontFamily: "'Inter', sans-serif",
   };
 
   return (
     <div
       style={{
         display: "flex",
-        flexWrap: "wrap", // Agar tombol Clear bisa turun jika sempit
+        flexWrap: "wrap",
         gap: "0.75rem",
-        marginTop: "auto", // KUNCI: Mendorong tombol ke posisi paling bawah layar
-        paddingTop: "1.5rem",
+        marginTop: "auto",
+        paddingTop: "2rem",
         width: "100%",
       }}
     >
-      {/* Container untuk Tombol Utama (Enkripsi & Dekripsi) */}
-      {/* Kita pakai flex: 1 1 250px agar mereka sebisa mungkin berjejer */}
       <div
         style={{
           display: "flex",
-          flex: isMobile ? "1 1 250px" : "1",
+          flex: isMobile ? "1 1 100%" : "1",
           gap: "0.75rem",
-          minWidth: isMobile ? "100%" : "auto",
         }}
       >
+        {/* ENKRIPSI */}
         <button
           onClick={onEncrypt}
           style={{ ...btnBase, background: "#3dffa0", color: "#000", flex: 1 }}
         >
           <LockIcon sx={{ fontSize: "1rem" }} /> Enkripsi
         </button>
+
+        {/* DEKRIPSI */}
         {onDecrypt && (
           <button
             onClick={onDecrypt}
             style={{
               ...btnBase,
-              background: "transparent",
-              border: "2px solid #3dffa0",
+              background: "rgba(61,255,160,0.05)",
+              border: "1px solid rgba(61,255,160,0.3)",
               color: "#3dffa0",
               flex: 1,
             }}
@@ -155,23 +177,31 @@ export function BtnRow({ onEncrypt, onDecrypt, onClear, extra, hasText }) {
             <LockOpenIcon sx={{ fontSize: "1rem" }} /> Dekripsi
           </button>
         )}
+
+        {/* TOMBOL ICON (GRID) */}
+        {extra}
       </div>
 
-      {/* Tombol Extra (jika ada, misal Playfair) */}
-      {extra && (
-        <div style={{ flex: isMobile ? "1 1 100%" : "none" }}>{extra}</div>
-      )}
-
-      {/* Tombol Clear */}
+      {/* TOMBOL CLEAR (WARNA MERAH INDUSTRIAL) */}
       {(!isMobile || hasText) && (
         <button
           onClick={onClear}
           style={{
             ...btnBase,
-            flex: isMobile ? "1 1 100%" : "none", // Di mobile dia jadi lebar penuh di bawah
-            background: "transparent",
-            border: "2px solid #2a2a2a",
-            color: "#aaa",
+            flex: isMobile ? "1 1 100%" : "none",
+            background: "rgba(255, 80, 80, 0.05)", // Merah transparan tipis
+            border: "1px solid rgba(255, 80, 80, 0.4)", // Border merah
+            color: "#ff5050", // Teks merah neon
+            paddingLeft: "1.5rem",
+            paddingRight: "1.5rem",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = "rgba(255, 80, 80, 0.1)";
+            e.currentTarget.style.boxShadow = "0 0 10px rgba(255, 80, 80, 0.1)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = "rgba(255, 80, 80, 0.05)";
+            e.currentTarget.style.boxShadow = "none";
           }}
         >
           <CloseIcon sx={{ fontSize: "1rem" }} /> Clear
@@ -185,13 +215,15 @@ export function Desc({ children }) {
   return (
     <div
       style={{
-        borderLeft: "3px solid #3dffa0",
-        paddingLeft: "1rem",
-        color: "#bbb",
-        fontSize: "0.92rem",
+        borderLeft: "2px solid #3dffa0",
+        padding: "0.75rem 1.25rem",
+        background: "rgba(61,255,160,0.02)",
+        color: "#888",
+        fontSize: "0.85rem",
         fontFamily: "'Inter', sans-serif",
-        lineHeight: 1.7,
-        marginBottom: "1.25rem",
+        lineHeight: 1.8,
+        marginBottom: "1.5rem",
+        borderRadius: "0 4px 4px 0",
       }}
     >
       {children}

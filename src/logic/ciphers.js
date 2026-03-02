@@ -1,5 +1,3 @@
-// ─── CIPHER ALGORITHMS ───────────────────────────────────────
-
 const A = 65;
 export const cleanText = (s) => s.toUpperCase().replace(/[^A-Z]/g, "");
 
@@ -9,11 +7,12 @@ export function gcd(a, b) {
 }
 
 export function modInverse(a, m) {
+  a = ((a % m) + m) % m;
   for (let x = 1; x < m; x++) if ((a * x) % m === 1) return x;
   return -1;
 }
 
-// ─── 1. VIGENÈRE ─────────────────────────────────────────────
+// ─── 1. VIGENÈRE (Preserve Case) ──────────────────────────────
 export function vigEncrypt(text, key) {
   const k = cleanText(key);
   if (!k) throw new Error("Kunci tidak boleh kosong");
@@ -53,45 +52,34 @@ export function vigDecrypt(text, key) {
 // ─── 2. AFFINE ───────────────────────────────────────────────
 export function affEncrypt(text, a, b) {
   if (gcd(a, 26) !== 1)
-    throw new Error(
-      `a=${a} tidak koprima dengan 26. Pilih: 1,3,5,7,9,11,15,17,19,21,23,25`,
-    );
-  let result = "";
-  for (const ch of text) {
-    if (/[A-Za-z]/.test(ch)) {
-      const isUp = ch === ch.toUpperCase();
-      const x = ch.toUpperCase().charCodeAt(0) - A;
-      const c = (a * x + b) % 26;
-      result += String.fromCharCode(c + A + (isUp ? 0 : 32));
-    } else result += ch;
-  }
-  return result;
+    throw new Error(`Nilai 'a' (${a}) harus koprima dengan 26.`);
+  return text.replace(/[a-zA-Z]/g, (ch) => {
+    const isUp = ch === ch.toUpperCase();
+    const x = ch.toUpperCase().charCodeAt(0) - A;
+    const c = (a * x + b) % 26;
+    return String.fromCharCode(c + A + (isUp ? 0 : 32));
+  });
 }
 
 export function affDecrypt(text, a, b) {
-  if (gcd(a, 26) !== 1) throw new Error(`a=${a} tidak koprima dengan 26`);
   const aInv = modInverse(a, 26);
-  let result = "";
-  for (const ch of text) {
-    if (/[A-Za-z]/.test(ch)) {
-      const isUp = ch === ch.toUpperCase();
-      const y = ch.toUpperCase().charCodeAt(0) - A;
-      const p = (aInv * (y - b + 26)) % 26;
-      result += String.fromCharCode(p + A + (isUp ? 0 : 32));
-    } else result += ch;
-  }
-  return result;
+  if (aInv === -1)
+    throw new Error(`Nilai 'a' (${a}) tidak memiliki invers mod 26.`);
+  return text.replace(/[a-zA-Z]/g, (ch) => {
+    const isUp = ch === ch.toUpperCase();
+    const y = ch.toUpperCase().charCodeAt(0) - A;
+    const p = (aInv * (y - b + 26)) % 26;
+    return String.fromCharCode(p + A + (isUp ? 0 : 32));
+  });
 }
 
-// ─── 3. PLAYFAIR ─────────────────────────────────────────────
+// ─── 3. PLAYFAIR (Improved Prep) ─────────────────────────────
 export function buildPlayfairGrid(key) {
   const seen = new Set();
   const grid = [];
-  const src = (key + "ABCDEFGHIKLMNOPQRSTUVWXYZ")
-    .toUpperCase()
-    .replace(/J/g, "I");
+  const src = (cleanText(key) + "ABCDEFGHIKLMNOPQRSTUVWXYZ").replace(/J/g, "I");
   for (const ch of src) {
-    if (/[A-Z]/.test(ch) && !seen.has(ch)) {
+    if (!seen.has(ch)) {
       seen.add(ch);
       grid.push(ch);
     }
@@ -99,49 +87,48 @@ export function buildPlayfairGrid(key) {
   return grid;
 }
 
-function pfPos(grid, ch) {
-  const i = grid.indexOf(ch === "J" ? "I" : ch);
-  return [Math.floor(i / 5), i % 5];
-}
-
 function prepPF(text) {
   let t = cleanText(text).replace(/J/g, "I");
   let out = "";
-  let i = 0;
-  while (i < t.length) {
+  for (let i = 0; i < t.length; i++) {
     out += t[i];
-    if (i + 1 < t.length) {
-      if (t[i] === t[i + 1]) out += "X";
-      else {
-        out += t[i + 1];
-        i++;
+    if (i < t.length - 1) {
+      if (t[i] === t[i + 1]) {
+        out += t[i] === "X" ? "Q" : "X"; // Jika XX maka XQX
+      } else {
+        out += t[++i];
       }
     }
-    i++;
   }
   if (out.length % 2 !== 0) out += "X";
   return out;
 }
 
 export function playfairProcess(text, key, encrypt) {
-  if (!key) throw new Error("Kunci tidak boleh kosong");
   const grid = buildPlayfairGrid(key);
   const prepared = encrypt ? prepPF(text) : cleanText(text).replace(/J/g, "I");
-  if (prepared.length % 2 !== 0 && !encrypt)
-    throw new Error("Panjang cipherteks harus genap");
   let result = "";
+
   for (let i = 0; i < prepared.length; i += 2) {
     const a = prepared[i],
-      b = prepared[i + 1] || "X";
-    const [r1, c1] = pfPos(grid, a);
-    const [r2, c2] = pfPos(grid, b);
+      b = prepared[i + 1];
+    const idx1 = grid.indexOf(a),
+      idx2 = grid.indexOf(b);
+    const r1 = Math.floor(idx1 / 5),
+      c1 = idx1 % 5;
+    const r2 = Math.floor(idx2 / 5),
+      c2 = idx2 % 5;
+
     if (r1 === r2) {
+      // Same Row
       result += grid[r1 * 5 + (encrypt ? (c1 + 1) % 5 : (c1 + 4) % 5)];
       result += grid[r2 * 5 + (encrypt ? (c2 + 1) % 5 : (c2 + 4) % 5)];
     } else if (c1 === c2) {
+      // Same Column
       result += grid[(encrypt ? (r1 + 1) % 5 : (r1 + 4) % 5) * 5 + c1];
       result += grid[(encrypt ? (r2 + 1) % 5 : (r2 + 4) % 5) * 5 + c2];
     } else {
+      // Rectangle
       result += grid[r1 * 5 + c2];
       result += grid[r2 * 5 + c1];
     }
@@ -154,101 +141,95 @@ export function hillDet(K) {
   return (((K[0][0] * K[1][1] - K[0][1] * K[1][0]) % 26) + 26) % 26;
 }
 
-export function hillInverse(K) {
-  const det = hillDet(K);
-  const di = modInverse(det, 26);
-  if (di === -1) return null;
-  return [
-    [(((K[1][1] * di) % 26) + 26) % 26, (((-K[0][1] * di) % 26) + 26) % 26],
-    [(((-K[1][0] * di) % 26) + 26) % 26, (((K[0][0] * di) % 26) + 26) % 26],
-  ];
-}
-
-function hillApply(text, K) {
-  let t = cleanText(text);
-  if (t.length % 2 !== 0) t += "X";
-  let result = "";
-  for (let i = 0; i < t.length; i += 2) {
-    const v0 = t.charCodeAt(i) - A,
-      v1 = t.charCodeAt(i + 1) - A;
-    result += String.fromCharCode(((K[0][0] * v0 + K[0][1] * v1) % 26) + A);
-    result += String.fromCharCode(((K[1][0] * v0 + K[1][1] * v1) % 26) + A);
-  }
-  return result;
-}
-
 export function hillEncrypt(text, K) {
   const det = hillDet(K);
   if (gcd(det, 26) !== 1)
-    throw new Error(
-      `det(K)=${det} tidak koprima dengan 26. Ganti matriks kunci.`,
-    );
-  return hillApply(text, K);
+    throw new Error("Matriks tidak valid (Determinan tidak koprima dengan 26)");
+
+  let t = cleanText(text);
+  if (t.length % 2 !== 0) t += "X";
+  let res = "";
+  for (let i = 0; i < t.length; i += 2) {
+    const p = [t.charCodeAt(i) - A, t.charCodeAt(i + 1) - A];
+    res += String.fromCharCode(((K[0][0] * p[0] + K[0][1] * p[1]) % 26) + A);
+    res += String.fromCharCode(((K[1][0] * p[0] + K[1][1] * p[1]) % 26) + A);
+  }
+  return res;
 }
 
 export function hillDecrypt(text, K) {
   const det = hillDet(K);
-  if (gcd(det, 26) !== 1)
-    throw new Error(`det(K)=${det} tidak koprima dengan 26.`);
-  const Ki = hillInverse(K);
-  if (!Ki) throw new Error("Matriks tidak bisa diinvers mod 26!");
-  return hillApply(text, Ki);
+  const detInv = modInverse(det, 26);
+  if (detInv === -1) throw new Error("Matriks tidak bisa diinvers.");
+
+  // Adjoint matrix mod 26
+  const Ki = [
+    [(K[1][1] * detInv) % 26, ((-K[0][1] + 26) * detInv) % 26],
+    [((-K[1][0] + 26) * detInv) % 26, (K[0][0] * detInv) % 26],
+  ];
+
+  let t = cleanText(text);
+  let res = "";
+  for (let i = 0; i < t.length; i += 2) {
+    const c = [t.charCodeAt(i) - A, t.charCodeAt(i + 1) - A];
+    res += String.fromCharCode(((Ki[0][0] * c[0] + Ki[0][1] * c[1]) % 26) + A);
+    res += String.fromCharCode(((Ki[1][0] * c[0] + Ki[1][1] * c[1]) % 26) + A);
+  }
+  return res;
 }
 
-// ─── 5. ENIGMA ───────────────────────────────────────────────
+// ─── 5. ENIGMA (M3 Simulation) ───────────────────────────────
 const ROTORS = [
-  { wiring: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", notch: "Q" }, // Rotor I
-  { wiring: "AJDKSIRUXBLHWTMCQGZNPYFVOE", notch: "E" }, // Rotor II
-  { wiring: "BDFHJLCPRTXVZNYEIWGAKMUSQO", notch: "V" }, // Rotor III
+  { w: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", n: "Q" }, // I
+  { w: "AJDKSIRUXBLHWTMCQGZNPYFVOE", n: "E" }, // II
+  { w: "BDFHJLCPRTXVZNYEIWGAKMUSQO", n: "V" }, // III
 ];
-const REFLECTOR_B = "YRUHQSLDPXNGOKMIEBFZCWVJAT";
+const REFLECTOR = "YRUHQSLDPXNGOKMIEBFZCWVJAT"; // Wide B
 
-function enigmaChar(ch, pos) {
-  let c = ch.charCodeAt(0) - A;
+export function enigmaProcess(text, settings) {
+  // Mapping Rotor: 0=Left, 1=Middle, 2=Right
+  let pos = settings.map((s) => s.charCodeAt(0) - A);
+  const n0 = ROTORS[0].n.charCodeAt(0) - A;
+  const n1 = ROTORS[1].n.charCodeAt(0) - A;
+  const n2 = ROTORS[2].n.charCodeAt(0) - A;
 
-  // Pasang kabel dari kanan ke kiri (Rotor III -> II -> I)
-  for (let r = 2; r >= 0; r--) {
-    const off = pos[r];
-    const w = ROTORS[r].wiring;
-    c = (w.charCodeAt((c + off) % 26) - A - off + 26) % 26;
-  }
+  return text
+    .toUpperCase()
+    .split("")
+    .map((char) => {
+      if (!/[A-Z]/.test(char)) return char;
 
-  // Reflektor
-  c = REFLECTOR_B.charCodeAt(c) - A;
-
-  // Kembali dari kiri ke kanan (Rotor I -> II -> III)
-  for (let r = 0; r <= 2; r++) {
-    const off = pos[r];
-    const w = ROTORS[r].wiring;
-    // Mencari indeks karakter yang sesuai (inverse wiring)
-    const targetChar = String.fromCharCode(((c + off) % 26) + A);
-    c = (w.indexOf(targetChar) - off + 26) % 26;
-  }
-
-  return String.fromCharCode(c + A);
-}
-
-export function enigmaProcess(text, rotorSettings) {
-  // Ubah karakter rotor ['A','A','A'] menjadi angka [0,0,0]
-  let pos = rotorSettings.map((r) => r.charCodeAt(0) - 65);
-  let result = "";
-
-  for (let char of text.toUpperCase()) {
-    if (/[A-Z]/.test(char)) {
-      // Mekanisme perputaran rotor (Stepping) sebelum enkripsi satu huruf
-      // Rotor III (Indeks 2) selalu berputar setiap huruf
+      // --- STEPPING LOGIC (M3 Double Stepping) ---
+      // Rotor Tengah di notch? Double step tengah dan kiri
+      if (pos[1] === n1) {
+        pos[0] = (pos[0] + 1) % 26;
+        pos[1] = (pos[1] + 1) % 26;
+      }
+      // Rotor Kanan di notch? Putar tengah
+      else if (pos[2] === n2) {
+        pos[1] = (pos[1] + 1) % 26;
+      }
+      // Rotor Kanan selalu berputar
       pos[2] = (pos[2] + 1) % 26;
 
-      // Notch logic sederhana (tambahkan double-stepping jika perlu sesuai spesifikasi)
-      if (pos[2] === ROTORS[2].notch.charCodeAt(0) - 65)
-        pos[1] = (pos[1] + 1) % 26;
-      if (pos[1] === ROTORS[1].notch.charCodeAt(0) - 65)
-        pos[0] = (pos[0] + 1) % 26;
+      // --- ENCRYPTION PATH ---
+      let c = char.charCodeAt(0) - A;
 
-      result += enigmaChar(char, pos);
-    } else {
-      result += char;
-    }
-  }
-  return result;
+      // Right -> Left
+      for (let i = 2; i >= 0; i--) {
+        c = (ROTORS[i].w.charCodeAt((c + pos[i]) % 26) - A - pos[i] + 26) % 26;
+      }
+
+      // Reflector
+      c = REFLECTOR.charCodeAt(c) - A;
+
+      // Left -> Right (Inverse)
+      for (let i = 0; i <= 2; i++) {
+        const charAtC = String.fromCharCode(((c + pos[i]) % 26) + A);
+        c = (ROTORS[i].w.indexOf(charAtC) - pos[i] + 26) % 26;
+      }
+
+      return String.fromCharCode(c + A);
+    })
+    .join("");
 }

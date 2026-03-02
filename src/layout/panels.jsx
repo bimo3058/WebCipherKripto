@@ -186,112 +186,118 @@ export function AffinePanel() {
 
 // ─── PANEL: PLAYFAIR ─────────────────────────────────────────
 export function PlayfairPanel() {
-  const gridStyle = useGridStyle();
-  const panelStyle = usePanelStyle();
   const [text, setText] = useState("");
-  const [key, setKey] = useState("MONARCHY");
+  const [key, setKey] = useState("");
   const [out, setOut] = useState(null);
-  const [showGrid, setShowGrid] = useState(false);
+  const [showGrid, setShowGrid] = useState(true); // Default tampil
+  const isMobile = useContext(MobileContext);
 
-  const grid = buildPlayfairGrid(key || "KEY");
-  const run = (fn, encrypt, label) => {
-    try {
-      setOut({ result: fn(text, key, encrypt), label, error: null });
-    } catch (e) {
-      setOut({ error: e.message });
-    }
+  const handleProcess = (enc) => {
+    try { setOut({ result: playfairProcess(text, key, enc) }); }
+    catch (e) { setOut({ error: e.message }); }
   };
 
   return (
-    <div style={panelStyle}>
+    <div style={isMobile ? { display: "flex", flexDirection: "column", flexGrow: 1 } : {}}>
       <Desc>
-        Enkripsi digraf menggunakan matriks 5×5. Huruf I dan J dianggap sama.
-        Pasangan huruf sama dipisah dengan X.
+        Menggunakan matriks 5×5. Huruf <b>J</b> digantikan dengan <b>I</b>. 
+        Jika ada huruf ganda dalam satu pasangan, disisipkan huruf <b>X</b>.
       </Desc>
-      <div style={gridStyle}>
-        <div>
-          <FieldLabel>Teks Input</FieldLabel>
-          <textarea
-            style={taStyle}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Masukkan teks..."
-          />
+
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "1rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div>
+            <FieldLabel>Input Text</FieldLabel>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Masukkan pesan..."
+              style={taStyle}
+            />
+          </div>
+          <div>
+            <FieldLabel>Keyword</FieldLabel>
+            <input
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="Contoh: MERDEKA"
+              style={inputStyle}
+            />
+          </div>
         </div>
-        <div>
-          <FieldLabel>Kunci</FieldLabel>
-          <input
-            style={inputStyle}
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder="contoh: MONARCHY"
-          />
+
+        {/* GRID PLAYFAIR DI TENGAH */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           {showGrid && (
-            <div style={{ marginTop: "0.75rem" }}>
-              <table
-                style={{
-                  borderCollapse: "collapse",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: "0.85rem",
-                }}
-              >
-                {[0, 1, 2, 3, 4].map((r) => (
-                  <tr key={r}>
-                    {[0, 1, 2, 3, 4].map((c) => (
-                      <td
-                        key={c}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          textAlign: "center",
-                          border: "1px solid #2a2a2a",
-                          color: "#3dffa0",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {grid[r * 5 + c]}
-                      </td>
-                    ))}
-                  </tr>
+            <>
+              <FieldLabel>5×5 Matrix Reference</FieldLabel>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(5, 1fr)",
+                gap: "6px",
+                background: "#08080c",
+                padding: "12px",
+                borderRadius: "12px",
+                border: "1px solid #1a1a25",
+                width: "100%",
+                maxWidth: "240px", // Ukuran ideal grid
+                boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+              }}>
+                {buildPlayfairGrid(key).map((char, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      aspectRatio: "1/1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#0f0f18",
+                      border: "1px solid #1a1a25",
+                      borderRadius: "6px",
+                      color: "#3dffa0",
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "1.1rem",
+                      fontWeight: 800,
+                      textShadow: "0 0 10px rgba(61,255,160,0.3)"
+                    }}
+                  >
+                    {char}
+                  </div>
                 ))}
-              </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>
+
       <BtnRow
         hasText={!!text}
-        onEncrypt={() => run(playfairProcess, true, "Cipherteks:")}
-        onDecrypt={() => run(playfairProcess, false, "Plainteks:")}
-        onClear={() => {
-          setText("");
-          setOut(null);
-          setShowGrid(false);
-        }}
+        onEncrypt={() => handleProcess(true)}
+        onDecrypt={() => handleProcess(false)}
+        onClear={() => { setText(""); setKey(""); setOut(null); }}
         extra={
           <button
-            onClick={() => setShowGrid((g) => !g)}
+            onClick={() => setShowGrid(!showGrid)}
+            title="Toggle Grid View"
             style={{
-              padding: "0.65rem 1.4rem",
+              background: showGrid ? "rgba(61,255,160,0.1)" : "transparent",
+              border: `1px solid ${showGrid ? "#3dffa0" : "#222"}`,
               borderRadius: "8px",
-              fontFamily: "'Inter', sans-serif",
-              fontSize: "0.88rem",
-              fontWeight: 700,
+              color: showGrid ? "#3dffa0" : "#444",
               cursor: "pointer",
-              background: "transparent",
-              border: "2px solid #ff6b35",
-              color: "#ff6b35",
-              transition: "all 0.2s",
+              padding: "0 12px",
               display: "flex",
               alignItems: "center",
-              gap: "0.4rem",
+              justifyContent: "center",
+              transition: "all 0.3s",
+              minWidth: "50px"
             }}
           >
-            <VisibilityIcon sx={{ fontSize: "1rem" }} /> Grid
+            <VisibilityIcon sx={{ fontSize: "1.2rem" }} />
           </button>
         }
       />
-      {out && <OutputBox {...out} />}
+      <OutputBox {...out} />
     </div>
   );
 }
