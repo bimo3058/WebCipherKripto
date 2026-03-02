@@ -55,14 +55,37 @@ export default function AppMobile() {
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #080810; overscroll-behavior: none; }
+        
+        * { 
+          box-sizing: border-box; 
+          margin: 0; 
+          padding: 0; 
+        }
+
+        body { 
+          background: #080810; 
+          overscroll-behavior: none; 
+        }
+
+        /* FIX UNTUK TOMBOL CLEAR & PROSES AGAR TIDAK KELUAR LAYAR */
+        button, input, textarea {
+          max-width: 100%;
+          word-wrap: break-word;
+        }
+
+        /* Memaksa container tombol di dalam panel untuk wrap (turun baris) jika sempit */
+        .panel-actions, [class*="button-container"] {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 10px !important;
+        }
+
         input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
         textarea:focus, input:focus { border-color: #3dffa0 !important; box-shadow: 0 0 0 2px rgba(61,255,160,0.15) !important; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* HEADER — compact for mobile */}
+      {/* HEADER */}
       <header
         style={{
           padding: "1rem 1.25rem 0.75rem",
@@ -105,7 +128,7 @@ export default function AppMobile() {
       {/* ACTIVE CIPHER LABEL */}
       <div
         style={{
-          padding: "0.85rem 1.25rem 0",
+          padding: "0.85rem 1.25rem 0.25rem",
           display: "flex",
           alignItems: "center",
           gap: "0.6rem",
@@ -113,20 +136,20 @@ export default function AppMobile() {
       >
         <h2
           style={{
-            fontSize: "1.2rem",
+            fontSize: "1.1rem",
             fontWeight: 800,
             background: "linear-gradient(135deg, #fff 0%, #3dffa0 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
         >
-          {CIPHERS[active]} Cipher
+          {CIPHERS[active]}
         </h2>
         <span
           style={{
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.65rem",
-            padding: "0.2rem 0.55rem",
+            fontSize: "0.6rem",
+            padding: "0.15rem 0.5rem",
             borderRadius: 999,
             border: "1px solid #3dffa0",
             color: "#3dffa0",
@@ -143,19 +166,18 @@ export default function AppMobile() {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "0.75rem 1.25rem",
-          paddingBottom: "calc(0.75rem + 72px)",
+          padding: "0.5rem 1rem", // Padding disesuaikan agar lega
+          paddingBottom: "80px",
           display: "flex",
           flexDirection: "column",
-          minHeight: 0,
         }}
       >
         <div
           style={{
             background: "#0f0f18",
-            border: "1px solid #1a1a1a",
+            border: "none", // BORDER SUDAH DIHAPUS
             borderRadius: "12px",
-            padding: "1.25rem",
+            padding: "1rem",
             width: "100%",
             flex: 1,
             display: "flex",
@@ -197,27 +219,25 @@ export default function AppMobile() {
               onClick={() => setActive(i)}
               style={{
                 flex: 1,
-                minWidth: 0, // Mencegah Enigma keluar layar
+                minWidth: 0, // Mencegah meluber keluar layar
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "0.25rem",
-                border: "none", // Memastikan tidak ada border tombol
-                outline: "none", // Menghapus outline saat diklik
+                gap: "0.2rem",
+                border: "none",
+                outline: "none",
                 background: "transparent",
                 cursor: "pointer",
                 padding: "4px 2px",
                 transition: "all 0.2s",
-                position: "relative",
-                WebkitTapHighlightColor: "transparent", // Menghapus highlight abu-abu di HP
+                WebkitTapHighlightColor: "transparent",
               }}
             >
-              {/* INDICATOR GARIS DI ATAS SUDAH DIHAPUS */}
-
+              {/* INDIKATOR GARIS DI ATAS DIHAPUS SESUAI PERMINTAAN */}
               <Icon
                 sx={{
-                  fontSize: "1.2rem", // Sedikit diperbesar karena garis sudah hilang
+                  fontSize: "1.2rem",
                   color: isActive ? "#3dffa0" : "#444",
                   transition: "color 0.2s",
                   filter: isActive
@@ -234,7 +254,6 @@ export default function AppMobile() {
                   transition: "color 0.2s",
                   textAlign: "center",
                   whiteSpace: "nowrap",
-                  letterSpacing: "0.02em",
                 }}
               >
                 {name.toUpperCase()}
