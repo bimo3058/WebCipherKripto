@@ -177,13 +177,15 @@ export default function AppMobile() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: "72px",
+          height: "68px",
           background: "#0a0a14",
           borderTop: "1px solid #1a1a1a",
           display: "flex",
-          alignItems: "stretch",
+          alignItems: "center",
+          justifyContent: "space-around",
           paddingBottom: "env(safe-area-inset-bottom)",
           zIndex: 100,
+          width: "100%",
         }}
       >
         {CIPHERS.map((name, i) => {
@@ -195,49 +197,44 @@ export default function AppMobile() {
               onClick={() => setActive(i)}
               style={{
                 flex: 1,
+                minWidth: 0, // Mencegah Enigma keluar layar
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "0.2rem",
-                border: "none",
+                gap: "0.25rem",
+                border: "none", // Memastikan tidak ada border tombol
+                outline: "none", // Menghapus outline saat diklik
                 background: "transparent",
                 cursor: "pointer",
+                padding: "4px 2px",
                 transition: "all 0.2s",
                 position: "relative",
+                WebkitTapHighlightColor: "transparent", // Menghapus highlight abu-abu di HP
               }}
             >
-              {/* Active indicator dot */}
-              {isActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "32px",
-                    height: "2px",
-                    background: "#3dffa0",
-                    borderRadius: "0 0 4px 4px",
-                    boxShadow: "0 0 8px rgba(61,255,160,0.6)",
-                  }}
-                />
-              )}
+              {/* INDICATOR GARIS DI ATAS SUDAH DIHAPUS */}
+
               <Icon
                 sx={{
-                  fontSize: "1.3rem",
+                  fontSize: "1.2rem", // Sedikit diperbesar karena garis sudah hilang
                   color: isActive ? "#3dffa0" : "#444",
                   transition: "color 0.2s",
+                  filter: isActive
+                    ? "drop-shadow(0 0 5px rgba(61,255,160,0.4))"
+                    : "none",
                 }}
               />
               <span
                 style={{
-                  fontSize: "0.6rem",
+                  fontSize: "0.55rem",
                   fontWeight: 700,
-                  letterSpacing: "0.05em",
                   color: isActive ? "#3dffa0" : "#444",
                   fontFamily: "'Inter', sans-serif",
                   transition: "color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                  letterSpacing: "0.02em",
                 }}
               >
                 {name.toUpperCase()}
