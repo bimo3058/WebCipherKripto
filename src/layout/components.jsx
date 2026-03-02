@@ -96,39 +96,48 @@ export function FieldLabel({ children }) {
 
 // components.jsx
 
-export function BtnRow({ onEncrypt, onDecrypt, onClear, hasText, extra }) {
-  const isMobile = useContext(MobileContext); // Memanfaatkan context yang sudah ada
+export function BtnRow({ onEncrypt, onDecrypt, onClear, extra, hasText }) {
+  const isMobile = useContext(MobileContext);
 
   const btnBase = {
-    flex: 1,
+    flex: isMobile ? "1 1 140px" : "1", // Di mobile, minimal 140px sebelum wrap
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "0.5rem",
-    padding: "0.8rem",
+    padding: "0.75rem 1rem",
     borderRadius: "8px",
-    border: "none",
+    fontSize: "0.85rem",
+    fontWeight: "600",
     cursor: "pointer",
-    fontSize: "0.9rem",
-    fontWeight: 600,
-    fontFamily: "'Inter', sans-serif",
+    transition: "all 0.2s",
+    border: "none",
   };
 
   return (
     <div
       style={{
         display: "flex",
+        flexWrap: "wrap", // Agar tombol Clear bisa turun jika sempit
         gap: "0.75rem",
-        // HANYA TERAPKAN MARGIN AUTO DI MOBILE
-        marginTop: isMobile ? "auto" : "1.5rem", 
-        paddingTop: isMobile ? "1.5rem" : "0",
-        flexDirection: "row",
+        marginTop: "auto", // KUNCI: Mendorong tombol ke posisi paling bawah layar
+        paddingTop: "1.5rem",
+        width: "100%",
       }}
     >
-      <div style={{ display: "flex", flex: 1, gap: "0.75rem" }}>
+      {/* Container untuk Tombol Utama (Enkripsi & Dekripsi) */}
+      {/* Kita pakai flex: 1 1 250px agar mereka sebisa mungkin berjejer */}
+      <div
+        style={{
+          display: "flex",
+          flex: isMobile ? "1 1 250px" : "1",
+          gap: "0.75rem",
+          minWidth: isMobile ? "100%" : "auto",
+        }}
+      >
         <button
           onClick={onEncrypt}
-          style={{ ...btnBase, background: "#3dffa0", color: "#000" }}
+          style={{ ...btnBase, background: "#3dffa0", color: "#000", flex: 1 }}
         >
           <LockIcon sx={{ fontSize: "1rem" }} /> Enkripsi
         </button>
@@ -140,28 +149,33 @@ export function BtnRow({ onEncrypt, onDecrypt, onClear, hasText, extra }) {
               background: "transparent",
               border: "2px solid #3dffa0",
               color: "#3dffa0",
+              flex: 1,
             }}
           >
             <LockOpenIcon sx={{ fontSize: "1rem" }} /> Dekripsi
           </button>
         )}
-        {extra}
       </div>
+
+      {/* Tombol Extra (jika ada, misal Playfair) */}
+      {extra && (
+        <div style={{ flex: isMobile ? "1 1 100%" : "none" }}>{extra}</div>
+      )}
+
+      {/* Tombol Clear */}
       {(!isMobile || hasText) && (
-        <div>
-          <button
-            onClick={onClear}
-            style={{
-              ...btnBase,
-              flex: "none",
-              background: "transparent",
-              border: "2px solid #2a2a2a",
-              color: "#aaa",
-            }}
-          >
-            <CloseIcon sx={{ fontSize: "1rem" }} /> Clear
-          </button>
-        </div>
+        <button
+          onClick={onClear}
+          style={{
+            ...btnBase,
+            flex: isMobile ? "1 1 100%" : "none", // Di mobile dia jadi lebar penuh di bawah
+            background: "transparent",
+            border: "2px solid #2a2a2a",
+            color: "#aaa",
+          }}
+        >
+          <CloseIcon sx={{ fontSize: "1rem" }} /> Clear
+        </button>
       )}
     </div>
   );
