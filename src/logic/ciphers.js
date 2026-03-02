@@ -197,49 +197,58 @@ export function hillDecrypt(text, K) {
 
 // ─── 5. ENIGMA ───────────────────────────────────────────────
 const ROTORS = [
-  { wiring: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", notch: "Q" },
-  { wiring: "AJDKSIRUXBLHWTMCQGZNPYFVOE", notch: "E" },
-  { wiring: "BDFHJLCPRTXVZNYEIWGAKMUSQO", notch: "V" },
+  { wiring: "EKMFLGDQVZNTOWYHXUSPAIBRCJ", notch: "Q" }, // Rotor I
+  { wiring: "AJDKSIRUXBLHWTMCQGZNPYFVOE", notch: "E" }, // Rotor II
+  { wiring: "BDFHJLCPRTXVZNYEIWGAKMUSQO", notch: "V" }, // Rotor III
 ];
 const REFLECTOR_B = "YRUHQSLDPXNGOKMIEBFZCWVJAT";
 
 function enigmaChar(ch, pos) {
-  let c = ch;
+  let c = ch.charCodeAt(0) - A;
+
+  // Pasang kabel dari kanan ke kiri (Rotor III -> II -> I)
   for (let r = 2; r >= 0; r--) {
-    const off = pos[r],
-      w = ROTORS[r].wiring;
+    const off = pos[r];
+    const w = ROTORS[r].wiring;
     c = (w.charCodeAt((c + off) % 26) - A - off + 26) % 26;
   }
+
+  // Reflektor
   c = REFLECTOR_B.charCodeAt(c) - A;
+
+  // Kembali dari kiri ke kanan (Rotor I -> II -> III)
   for (let r = 0; r <= 2; r++) {
-    const off = pos[r],
-      w = ROTORS[r].wiring;
-    c = (w.indexOf(String.fromCharCode(((c + off) % 26) + A)) - off + 26) % 26;
+    const off = pos[r];
+    const w = ROTORS[r].wiring;
+    // Mencari indeks karakter yang sesuai (inverse wiring)
+    const targetChar = String.fromCharCode(((c + off) % 26) + A);
+    c = (w.indexOf(targetChar) - off + 26) % 26;
   }
-  return c;
+
+  return String.fromCharCode(c + A);
 }
 
-function stepRotors(pos) {
-  const p = [...pos];
-  const midAtNotch = String.fromCharCode(pos[1] + A) === ROTORS[1].notch;
-  const rgtAtNotch = String.fromCharCode(pos[2] + A) === ROTORS[2].notch;
-  if (midAtNotch) {
-    p[0] = (pos[0] + 1) % 26;
-    p[1] = (pos[1] + 1) % 26;
-  }
-  if (rgtAtNotch) p[1] = (p[1] + 1) % 26;
-  p[2] = (pos[2] + 1) % 26;
-  return p;
-}
-
-export function enigmaProcess(text, r1, r2, r3) {
-  let pos = [r1.charCodeAt(0) - A, r2.charCodeAt(0) - A, r3.charCodeAt(0) - A];
+export function enigmaProcess(text, rotorSettings) {
+  // Ubah karakter rotor ['A','A','A'] menjadi angka [0,0,0]
+  let pos = rotorSettings.map((r) => r.charCodeAt(0) - 65);
   let result = "";
-  for (const ch of text.toUpperCase()) {
-    if (/[A-Z]/.test(ch)) {
-      pos = stepRotors(pos);
-      result += String.fromCharCode(enigmaChar(ch.charCodeAt(0) - A, pos) + A);
-    } else result += ch;
+
+  for (let char of text.toUpperCase()) {
+    if (/[A-Z]/.test(char)) {
+      // Mekanisme perputaran rotor (Stepping) sebelum enkripsi satu huruf
+      // Rotor III (Indeks 2) selalu berputar setiap huruf
+      pos[2] = (pos[2] + 1) % 26;
+
+      // Notch logic sederhana (tambahkan double-stepping jika perlu sesuai spesifikasi)
+      if (pos[2] === ROTORS[2].notch.charCodeAt(0) - 65)
+        pos[1] = (pos[1] + 1) % 26;
+      if (pos[1] === ROTORS[1].notch.charCodeAt(0) - 65)
+        pos[0] = (pos[0] + 1) % 26;
+
+      result += enigmaChar(char, pos);
+    } else {
+      result += char;
+    }
   }
   return result;
 }

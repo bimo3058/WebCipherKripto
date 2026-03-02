@@ -426,104 +426,148 @@ export function HillPanel() {
 
 // ─── PANEL: ENIGMA ───────────────────────────────────────────
 export function EnigmaPanel() {
-  const gridStyle = useGridStyle();
-  const panelStyle = usePanelStyle();
   const [text, setText] = useState("");
   const [rotors, setRotors] = useState(["A", "A", "A"]);
   const [out, setOut] = useState(null);
+  const isMobile = useContext(MobileContext);
 
-  const setRotor = (i, v) => {
-    const r = [...rotors];
-    r[i] =
-      v
-        .toUpperCase()
-        .replace(/[^A-Z]/g, "")
-        .slice(-1) || "A";
-    setRotors(r);
+  const shiftRotor = (idx, delta) => {
+    const current = rotors[idx].charCodeAt(0);
+    let next = current + delta;
+    if (next < 65) next = 90;
+    if (next > 90) next = 65;
+    const newR = [...rotors];
+    newR[idx] = String.fromCharCode(next);
+    setRotors(newR);
   };
 
-  const run = () => {
+  const handleProcess = () => {
     try {
-      setOut({
-        result: enigmaProcess(text, rotors[0], rotors[1], rotors[2]),
-        label: "Output (simetris — enkripsi = dekripsi):",
-        error: null,
-      });
+      const res = enigmaProcess(text, rotors);
+      setOut({ result: res });
     } catch (e) {
       setOut({ error: e.message });
     }
   };
 
+  const rotorContainerStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    padding: "16px",
+    background: "rgba(255,255,255,0.02)",
+    borderRadius: "12px",
+    border: "1px solid #2a2a2a",
+    marginTop: "0.5px",
+  };
+
   return (
-    <div style={panelStyle}>
-      <Desc>
-        Simulasi mesin Enigma 3 rotor (I, II, III) dengan Reflector-B. Bersifat
-        simetris: output enkripsi dengan setting sama menghasilkan plainteks
-        asli.
-      </Desc>
-      <div style={gridStyle}>
-        <div>
-          <FieldLabel>Teks Input</FieldLabel>
+    <div style={usePanelStyle()}>
+      <div style={useGridStyle()}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <FieldLabel>Input Teks</FieldLabel>
           <textarea
             style={taStyle}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Masukkan teks..."
+            placeholder="Masukkan pesan..."
           />
         </div>
-        <div>
-          <FieldLabel>Posisi Awal Rotor (A–Z)</FieldLabel>
-          <div style={{ display: "flex", gap: "0.75rem" }}>
-            {["Rotor I", "Rotor II", "Rotor III"].map((label, i) => (
-              <div key={i} style={{ flex: 1, textAlign: "center" }}>
-                <div
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <FieldLabel>Pengaturan Rotor (I - II - III)</FieldLabel>
+          <div style={rotorContainerStyle}>
+            {rotors.map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "#111",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                }}
+              >
+                <span
                   style={{
-                    fontSize: "0.8rem",
-                    color: "#999",
-                    marginBottom: "0.35rem",
-                    fontFamily: "'Inter', sans-serif",
+                    color: "#666",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
                   }}
                 >
-                  {label}
+                  ROTOR {i + 1}
+                </span>
+
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <button
+                    onClick={() => shiftRotor(i, -1)}
+                    style={{
+                      background: "none",
+                      border: "1px solid #333",
+                      color: "#3dffa0",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      padding: "2px 8px",
+                    }}
+                  >
+                    ▼
+                  </button>
+                  <span
+                    style={{
+                      fontSize: "1.5rem",
+                      fontWeight: 800,
+                      color: "#3dffa0",
+                      minWidth: "30px",
+                      textAlign: "center",
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  >
+                    {r}
+                  </span>
+                  <button
+                    onClick={() => shiftRotor(i, 1)}
+                    style={{
+                      background: "none",
+                      border: "1px solid #333",
+                      color: "#3dffa0",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      padding: "2px 8px",
+                    }}
+                  >
+                    ▲
+                  </button>
                 </div>
-                <input
-                  style={{
-                    ...inputStyle,
-                    textAlign: "center",
-                    fontSize: "1.6rem",
-                    fontWeight: 700,
-                    color: "#3dffa0",
-                    padding: "0.5rem",
-                  }}
-                  value={rotors[i]}
-                  maxLength={1}
-                  onChange={(e) => setRotor(i, e.target.value)}
-                />
               </div>
             ))}
           </div>
           <div
             style={{
-              fontSize: "0.82rem",
-              color: "#999",
-              fontFamily: "'JetBrains Mono', monospace",
-              marginTop: "0.6rem",
+              fontSize: "0.7rem",
+              color: "#555",
+              marginTop: "4px",
+              paddingLeft: "4px",
             }}
           >
-            ⚙ Notch: Rotor I=Q, II=E, III=V
+            * Enigma menggunakan kunci yang sama untuk enkripsi & dekripsi.
           </div>
         </div>
       </div>
+
       <BtnRow
         hasText={!!text}
-        onEncrypt={run}
+        onEncrypt={handleProcess}
+        onDecrypt={handleProcess} // Dekripsi Enigma sama dengan Enkripsi
         onClear={() => {
           setText("");
           setRotors(["A", "A", "A"]);
           setOut(null);
         }}
       />
-      {out && <OutputBox {...out} />}
+      <OutputBox {...out} />
     </div>
   );
 }
